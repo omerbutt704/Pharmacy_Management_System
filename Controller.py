@@ -68,7 +68,25 @@ class Controller:
                 while True:
                     choice = input("to Give Prescription\tPress 1\nBack\t\t\tPress 2\nChoice: ")
                     if choice == "1":
-                        #
+                        while True:
+                            try:
+                                many = int(input("How many medicine you wanna buy? "))
+                                break
+                            except TypeError:
+                                print("Enter a Number!")
+                        medicines = []
+                        for i in range(many):
+                            name = input("Details of Medicine you want to buy!\nName: ")
+                            while True:
+                                try:
+                                    quantity = int(input("Quantity: "))
+                                    break
+                                except TypeError:
+                                    print("Enter a Number!")
+                            med = Prescription(name, quantity)
+                            medicines.append(med)
+                        print(self.model.order(medicines))
+
                     else:
                         return
         else:

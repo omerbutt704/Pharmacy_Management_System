@@ -24,7 +24,7 @@ class Inventory:
 
 
 class Prescription:
-    def __init__(self, med_name: str, quantity: str) -> None:
+    def __init__(self, med_name: str, quantity: int) -> None:
         self.med_name, self.quantity = med_name, quantity
 
 
@@ -33,6 +33,9 @@ class Billing:
         self.med_name = med_name
         self.price = price
         self.quantity = quantity
+
+    def total_price(self) -> int:
+        return self.price * self.quantity
 
     def display(self):
         print("Name: " + self.med_name + "\nPrice: " + self.price + "\nQuantity: " + self.quantity)
