@@ -1,4 +1,5 @@
 import pymysql
+from Classes import *
 
 
 class Model:
@@ -72,6 +73,56 @@ class Model:
         except Exception as e:
             print("X : Error: Insert User Function", str(e))
             return f
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return f
+
+    def add_medicine(self, medicine, user):
+        cursor, f = None, False
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "select user_id from users where email = %s"
+                args = user.email
+                cursor.execute(query, args)
+                userid = cursor.fetchone()
+                userid = userid[0]
+                query = "insert into medicine (admin_id, med_name, price, description, formula, quantity) values (%s,%s,%s,%s,%s,%s)"
+                arg = (userid, medicine.name, medicine.price, medicine.description, medicine.formula, medicine.quantity)
+                cursor.execute(query, arg)
+                self.connection.commit()
+                f = True
+            else:
+                f = False
+        except Exception as e:
+            print("X : Error: Add Medicine Function", str(e))
+            f = False
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return f
+
+    def delete_medicine(self, name, formula, user):
+        cursor, f = None, False
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "select user_id from users where email = %s"
+                args = user.email
+                cursor.execute(query, args)
+                userid = cursor.fetchone()
+                userid = userid[0]
+                query = "delete from medicine where admin_id = %s and med_name = %s and formula = %s"
+                arg = (userid, name, formula)
+                cursor.execute(query, arg)
+                self.connection.commit()
+                f = True
+            else:
+                f = False
+        except Exception as e:
+            print("X : Error: Delete Medicine Function", str(e))
+            f = False
         finally:
             if cursor is not None:
                 cursor.close()
