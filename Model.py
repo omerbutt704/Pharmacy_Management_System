@@ -4,6 +4,7 @@ from Classes import *
 payment = 0
 
 
+
 class Model:
     # CONSTRUCTOR - CONNECTING TO DATABASE
     def __init__(self, host: str, user: str, password: str, database: str) -> None:
