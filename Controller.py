@@ -1,4 +1,6 @@
+import Model
 from Model import *
+
 
 class Controller:
     # CONSTRUCTOR
@@ -8,9 +10,9 @@ class Controller:
 
     def sign_up(self, status):
         email = input("Enter Email: ")
-        password = input("Enter Password\n(Length > 8): ")
-        while len(password) < 8:
-            password = input("(Length > 8): ")
+        password = input("Enter Password\n(Length > 5): ")
+        while len(password) < 5:
+            password = input("(Length > 5): ")
         user = Users(email, password, status)
         taken = self.model.check_user_exist(user)
         if taken is False:
@@ -31,20 +33,21 @@ class Controller:
             print('O : SignIn Successful!')
             if status == "Admin":
                 while True:
-                    choice = input("to Add Medicine\tPress 1\nto Delete Medicine\tPress 2\nBack\t\tPress 3\nChoice: ")
+                    choice = input("to Add Medicine\t\tPress 1\nto Delete Medicine\tPress 2\nBack\t\t\t\tPress "
+                                   "3\nChoice: ")
                     if choice == "1":
                         name = input("Adding Medicine...\nName: ")
                         while True:
                             try:
                                 price = int(input("Price: "))
                                 break
-                            except TypeError:
+                            except ValueError:
                                 print("Enter a Number!")
                         while True:
                             try:
                                 quantity = int(input("Quantity: "))
                                 break
-                            except TypeError:
+                            except ValueError:
                                 print("Enter a Number!")
                         formula = input("Formula: ")
                         description = input("Description: ")
@@ -55,24 +58,24 @@ class Controller:
                         else:
                             print("X : Error: Addition Failure")
                     elif choice == "2":
-                        name = input("Deleting Medicine...Name: ")
+                        name = input("Deleting Medicine...\nName: ")
                         formula = input("Formula: ")
                         delete = self.model.delete_medicine(name, formula, user)
                         if delete:
                             print("O : Medicine Deleted!")
                         else:
-                            print("X : Error: Deleted Failure")
+                            print("X : Error: Delete Failure")
                     else:
                         return
             elif status == "Customer":
                 while True:
-                    choice = input("to Give Prescription\tPress 1\nBack\t\t\tPress 2\nChoice: ")
+                    choice = input("to Give Prescription\tPress 1\nBack\t\t\t\t\tPress 2\nChoice: ")
                     if choice == "1":
                         while True:
                             try:
                                 many = int(input("How many medicine you wanna buy? "))
                                 break
-                            except TypeError:
+                            except ValueError:
                                 print("Enter a Number!")
                         medicines = []
                         for i in range(many):
@@ -81,12 +84,15 @@ class Controller:
                                 try:
                                     quantity = int(input("Quantity: "))
                                     break
-                                except TypeError:
+                                except ValueError:
                                     print("Enter a Number!")
                             med = Prescription(name, quantity)
                             medicines.append(med)
-                        print(self.model.order(medicines))
-
+                        print("Total Bill: Rs.", self.model.order(medicines))
+                        self.model.payment = 0
+                        input("Press Any key to Pay...")
+                        print("Bill Payment Successful!")
+                        return
                     else:
                         return
         else:

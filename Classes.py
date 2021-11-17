@@ -15,27 +15,6 @@ class Medicine:
         self.quantity = quantity
 
 
-class Inventory:
-    def __init__(self, list_of_Medicines={}):
-        self.med_obj = list_of_Medicines
-
-    def get_all_medicine_details(self):
-        return self.med_obj
-
-
 class Prescription:
     def __init__(self, med_name: str, quantity: int) -> None:
         self.med_name, self.quantity = med_name, quantity
-
-
-class Billing:
-    def __init__(self, med_name, price, quantity):
-        self.med_name = med_name
-        self.price = price
-        self.quantity = quantity
-
-    def total_price(self) -> int:
-        return self.price * self.quantity
-
-    def display(self):
-        print("Name: " + self.med_name + "\nPrice: " + self.price + "\nQuantity: " + self.quantity)
