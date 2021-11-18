@@ -9,62 +9,122 @@ class Controller:
         self.model = Model("localhost", "root", password, "pharmacy")
 
     def sign_up(self, status):
-        email = input("Enter Email: ")
-        password = input("Enter Password\n(Length > 5): ")
+        email = input("\n\t\tEnter Email: ")
+        password = input("\t\tEnter Password: ")
         while len(password) < 5:
-            password = input("(Length > 5): ")
+            password = input("\t\tLength should be greater than 5\n\t\t>: ")
         user = Users(email, password, status)
         taken = self.model.check_user_exist(user)
         if taken is False:
             insert = self.model.insert_user(user)
             if insert:
-                print("O : Signup Successful!")
+                print("\t\tO : Signup Successful!")
             else:
-                print("X : Signup Failed!")
+                print("\t\tX : Signup Failed!")
         else:
-            print("X : Sorry! Email Taken!")
+            print("\t\tX : Sorry! Email Taken!")
 
     def sign_in(self, status):
-        email = input("Enter Email: ")
-        password = input("Enter Password: ")
+        email = input("\n\t\tEnter Email: ")
+        password = input("\t\tEnter Password: ")
         user = Users(email, password, status)
         valid = self.model.check_user_credentials(user)
         if valid:
-            print('O : SignIn Successful!')
+            print('\t\tO : SignIn Successful!')
             if status == "Admin":
                 while True:
-                    choice = input("to Add Medicine\t\tPress 1\nto Delete Medicine\tPress 2\nBack\t\t\t\tPress "
-                                   "3\nChoice: ")
+                    choice = input("\n\t\tto Add Medicine\t\tPress 1\n\t\tto Delete Medicine\tPress 2\n\t\tDisplay "
+                                   "Medicines\tPress 3\n\t\tBack\t\t\t\tPress 4\n\t\tChoice: ")
                     if choice == "1":
-                        name = input("Adding Medicine...\nName: ")
-                        while True:
-                            try:
-                                price = int(input("Price: "))
-                                break
-                            except ValueError:
-                                print("Enter a Number!")
-                        while True:
-                            try:
-                                quantity = int(input("Quantity: "))
-                                break
-                            except ValueError:
-                                print("Enter a Number!")
-                        formula = input("Formula: ")
-                        description = input("Description: ")
-                        medicine = Medicine(name, price, description, formula, quantity)
-                        add = self.model.add_medicine(medicine, user)
-                        if add:
-                            print("O : Medicine Added!")
+                        name = input("\n\t\t\tAdding Medicine...\n\t\t\tName: ")
+                        exists = self.model.check_medicine_name(name)
+                        if exists is False:
+                            while True:
+                                try:
+                                    price = int(input("\t\t\tPrice: "))
+                                    while price <= 0:
+                                        price = int(input("\t\t\tEnter Price again: "))
+                                    break
+                                except ValueError:
+                                    print("\t\t\tEnter a Number!")
+                            while True:
+                                try:
+                                    quantity = int(input("\t\t\tQuantity: "))
+                                    while quantity <= 0:
+                                        quantity = int(input("\t\t\tEnter Quantity again: "))
+                                    break
+                                except ValueError:
+                                    print("\t\t\tEnter a Number!")
+                            formula = input("\t\t\tFormula: ")
+                            description = input("\t\t\tDescription: ")
+                            medicine = Medicine(name, price, description, formula, quantity)
+                            add = self.model.add_medicine(medicine, user)
+                            if add:
+                                print("\t\t\tO : Medicine Added!")
+                            else:
+                                print("\t\t\tX : Error: Addition Failure")
                         else:
-                            print("X : Error: Addition Failure")
+                            choice = input("\n\t\t\tMedicine name already exist\n\t\t\tWant to update Price or "
+                                           "Quantity(y/n): ")
+                            if choice == "y" or choice == "Y":
+                                choice = input("\n\t\t\tto Update Price\tPress 1\n\t\t\tto Update "
+                                               "Quantity\tPress 2\n\t\t\tChoice:")
+                                if choice == "1":
+                                    while True:
+                                        try:
+                                            price = int(input("\t\t\tPrice: "))
+                                            while price <= 0:
+                                                price = int(input("\t\t\tEnter Price again: "))
+                                            break
+                                        except ValueError:
+                                            print("\t\t\tEnter a Number!")
+                                    addP = self.model.price_update(name, price)
+                                    if addP:
+                                        print("\t\t\tO: Price Updated")
+                                    else:
+                                        print("\t\t\tX: Price Update Failure")
+                                else:
+                                    while True:
+                                        try:
+                                            quantity = int(input("\t\t\tQuantity: "))
+                                            while quantity <= 0:
+                                                quantity = int(input("\t\t\tEnter Quantity again: "))
+                                            break
+                                        except ValueError:
+                                            print("\t\t\tEnter a Number!")
+                                    addQ = self.model.quantity_update(name, quantity)
+                                    if addQ:
+                                        print("\t\t\tO: Quantity Updated")
+                                    else:
+                                        print("\t\t\tX: Quantity Update Failure")
                     elif choice == "2":
-                        name = input("Deleting Medicine...\nName: ")
-                        formula = input("Formula: ")
-                        delete = self.model.delete_medicine(name, formula, user)
-                        if delete:
-                            print("O : Medicine Deleted!")
-                        else:
-                            print("X : Error: Delete Failure")
+                        choice = input("\t\t\tDeleting Medicine...\n\t\t\tBy Name\t\tPress 1\n\t\t\tBy Formula\tPress "
+                                       "2\n\t\t\tChoice: ")
+                        if choice == "1":
+                            name = input("\n\t\t\tEnter Name: ")
+                            delete = self.model.delete_medicine_name(name)
+                            if delete:
+                                print("\t\t\tO : Medicine Deleted!")
+                            else:
+                                print("\t\t\tX : Error: Delete Failure")
+                        if choice == "2":
+                            formula = input("\n\t\t\t🚨 Warning! Will delete all with this Formula\n\t\t\tEnter Formula: ")
+                            delete = self.model.delete_medicine_formula(formula)
+                            if delete:
+                                print("\t\t\tO : Medicine Deleted!")
+                            else:
+                                print("\t\t\tX : Error: Delete Failure")
+                    elif choice == "3":
+                        medicines = self.model.display_all()
+                        print("+---------------+------+---------------+--------------+---------------")
+                        print("\t", end="")
+                        print('{:<13}{:<8}{:<15}{:<15}{:<6}'.format("Name", "Price", "Description", "Formula",
+                                                                    "Quantity"))
+                        print("+---------------+------+---------------+--------------+---------------")
+                        for m in medicines:
+                            print("\t", end="")
+                            print('{:<15}{:<6}{:<15}{:<15}{:<6}'.format(m[2], m[3], m[4], m[5], m[6]))
+                        print("+---------------+------+---------------+--------------+---------------\n")
                     else:
                         return
             elif status == "Customer":
@@ -95,4 +155,4 @@ class Controller:
                     else:
                         return
         else:
-            print('O : SignIn Failed!')
+            print('\t\tO : SignIn Failed!')

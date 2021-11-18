@@ -18,3 +18,8 @@ class Medicine:
 class Prescription:
     def __init__(self, med_name: str, quantity: int) -> None:
         self.med_name, self.quantity = med_name, quantity
+
+
+class Order:
+    def __init__(self, med_name, quantity, price):
+        self.med_name, self.quantity, self.price = med_name, quantity, price

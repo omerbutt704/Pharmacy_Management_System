@@ -9,17 +9,19 @@ def main():
         # ADMIN
         if choice == "1":
             while True:
-                choice = input("to Sign Up\tPress 1\nto Sign In\tPress 2\nBack\t\tPress 3\nChoice: ")
+                choice = input("\n\tto Sign Up\tPress 1\n\tto Sign In\tPress 2\n\tBack\t\tPress 3\n\tChoice: ")
                 if choice == "1":
                     controller.sign_up("Admin")
                 elif choice == "2":
                     controller.sign_in("Admin")
-                else:
+                elif choice == "3":
                     break
+                else:
+                    print("\n\tEnter Valid Choice!")
         # CUSTOMER
         elif choice == "2":
             while True:
-                choice = input("to Sign Up\tPress 1\nto Sign In\tPress 2\nBack\t\tPress 3\nChoice: ")
+                choice = input("\n\tto Sign Up\tPress 1\n\tto Sign In\tPress 2\n\tBack\t\tPress 3\n\tChoice: ")
                 if choice == "1":
                     controller.sign_up("Customer")
                 elif choice == "2":
@@ -27,9 +29,11 @@ def main():
                 else:
                     break
         # EXIT
-        else:
+        elif choice == "3":
             print("\n\t\tGoodBye OwO")
             break
+        else:
+            print("\n\tEnter Valid Choice!")
 
 
 main()

@@ -10,6 +10,7 @@ class Model:
         self.password = password
         self.database = database
         self.connection = None
+        self.bill = Order(None, None, None)
         self.payment = 0
         try:
             self.connection = pymysql.connect(host=self.host, user=self.user, password=self.password,
@@ -49,11 +50,57 @@ class Model:
                 cursor.execute("select email, password, status from users")
                 credentials = cursor.fetchall()
                 for c in credentials:
-                    if user.email == c[0] and user.password == c[1] and user.status == c[2]:
+                    if user.email == c[0] and user.status == c[2]:
+                        if user.password == c[1]:
+                            f = True
+                            break
+                        else:
+                            selection = input("Password is incorrect\nWant to reset your Password?(y/n): ")
+                            if selection == "y" or selection == "Y":
+                                passwrd = input("\nEnter New Password: ")
+                                while len(passwrd) < 5:
+                                    print("\nPassword can't be less than 5 characters")
+                                    passwrd = input("\nEnter Password Again: ")
+                                self.update_password(c[0], passwrd)
+                                f = True
+                                break
+                            else:
+                                break
+        except Exception as e:
+            print("Error: Invalid Credentials", str(e))
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return f
+
+    def update_password(self, email, passwrd):
+        cursor = None
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "update users set password=%s where email=%s"
+                args = (passwrd, email)
+                cursor.execute(query, args)
+                self.connection.commit()
+        except Exception as e:
+            print("X: Error: Password not Updated")
+        finally:
+            if cursor is not None:
+                cursor.close()
+
+    def check_medicine_name(self, medicines):
+        cursor, f = None, False
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                cursor.execute("select med_name from medicine")
+                med = cursor.fetchall()
+                for e in med:
+                    if medicines == e[0]:
                         f = True
                         break
         except Exception as e:
-            print("Error: Invalid Credentials", str(e))
+            print("Error: Medicine Adding Error", str(e))
         finally:
             if cursor is not None:
                 cursor.close()
@@ -104,31 +151,52 @@ class Model:
                 cursor.close()
                 return f
 
-    def delete_medicine(self, name, formula, user):
+    def delete_medicine_name(self, name):
         cursor, f = None, False
         try:
             if self.connection is not None:
                 cursor = self.connection.cursor()
-                query = "select user_id from users where email = %s"
-                args = user.email
-                cursor.execute(query, args)
-                userid = cursor.fetchone()
-                userid = userid[0]
                 query = "select med_name, quantity, price, formula from medicine where med_name=%s"
                 args = name
                 cursor.execute(query, args)
                 check = cursor.fetchone()
                 if check is None:
                     return False
-                query = "delete from medicine where admin_id = %s and med_name = %s and formula = %s"
-                arg = (userid, name, formula)
+                query = "delete from medicine where med_name = %s"
+                arg = name
                 cursor.execute(query, arg)
                 self.connection.commit()
                 f = True
             else:
                 f = False
         except Exception as e:
-            print("X : Error: Delete Medicine Function", str(e))
+            print("X : Error: Delete Medicine Name", str(e))
+            f = False
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return f
+
+    def delete_medicine_formula(self, formula):
+        cursor, f = None, False
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "select med_name, quantity, price, formula from medicine where formula=%s"
+                args = formula
+                cursor.execute(query, args)
+                check = cursor.fetchone()
+                if check is None:
+                    return False
+                query = "delete from medicine where formula = %s"
+                arg = formula
+                cursor.execute(query, arg)
+                self.connection.commit()
+                f = True
+            else:
+                f = False
+        except Exception as e:
+            print("X : Error: Delete Medicine formula", str(e))
             f = False
         finally:
             if cursor is not None:
@@ -146,6 +214,23 @@ class Model:
                 check = cursor.fetchone()
         except Exception as e:
             print("X : Error: Search: Name")
+            if cursor is not None:
+                cursor.close()
+        finally:
+            if cursor is not None:
+                cursor.close()
+            return check
+
+    def display_all(self):
+        cursor, check = None, []
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "select * from medicine"
+                cursor.execute(query)
+                check = cursor.fetchall()
+        except Exception as e:
+            print("X : Error: Display")
             if cursor is not None:
                 cursor.close()
         finally:
@@ -181,12 +266,29 @@ class Model:
                 cursor.execute(query, args)
                 self.connection.commit()
         except Exception as e:
-            print("X : Error: Alternative")
+            print("X : Error: Quantity Update Failed")
             if cursor is not None:
                 cursor.close()
         finally:
             if cursor is not None:
                 cursor.close()
+
+    def price_update(self, name, price):
+        cursor = None
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = "update medicine set price=%s where med_name=%s"
+                args = price, name
+                cursor.execute(query, args)
+                self.connection.commit()
+        except Exception as e:
+            print("X : Error: Price Update Failed")
+            return False
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return True
 
     def order(self, medicines):
         try:
@@ -198,6 +300,7 @@ class Model:
                     else:
                         if m[1] > med.quantity:
                             print(m[0], " in Cart, Quantity: ", med.quantity, " , Price: ", m[2])
+
                             self.payment = self.payment + (m[2] * med.quantity)
                             self.quantity_update(m[0], (m[1] - med.quantity))
                         else:
