@@ -202,12 +202,13 @@ class Model:
                             self.quantity_update(m[0], (m[1] - med.quantity))
                         else:
                             print("Not enough Quantity of ", med.med_name, " in Inventory\nWe can provide ",
-                                  med.quantity - 1)
+                                  m[1] - 1)
                             choice = input("\nWant to Take it(y/n): ")
                             if choice == "y" or choice == "Y":
-                                print(m[0], " in Cart, Quantity: ", med.quantity - 1, " , Price: ", m[2])
-                                self.payment = self.payment + (m[2] * (med.quantity - 1))
-                                self.quantity_update(m[0], (m[1] - (med.quantity - 1)))
+                                med.quantity = m[1] - 1
+                                print(m[0], " in Cart, Quantity: ", med.quantity, " , Price: ", m[2])
+                                self.payment = self.payment + (m[2] * med.quantity)
+                                self.quantity_update(m[0], (m[1] - med.quantity))
                             else:
                                 choice = input("Want an alternative(y/n): ")
                                 if choice == "y" or choice == "Y":

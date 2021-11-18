@@ -92,7 +92,6 @@ class Controller:
                         self.model.payment = 0
                         input("Press Any key to Pay...")
                         print("Bill Payment Successful!")
-                        return
                     else:
                         return
         else:
