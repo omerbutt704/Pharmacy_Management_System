@@ -1,5 +1,5 @@
-import pymysql
 from Classes import *
+import pymysql
 
 
 class Model:
@@ -23,6 +23,26 @@ class Model:
     def __del__(self) -> None:
         if self.connection is not None:
             self.connection.close()
+
+    def check_password(self, user, password):
+        cursor, f = None, False
+        try:
+            if self.connection is not None:
+                cursor = self.connection.cursor()
+                query = ("select email,password from users where email=%s")
+                args = user.email
+                cursor.execute(query, args)
+                emails = cursor.fetchall()
+                for e in emails:
+                    if user.email == e[0] and password == e[1]:
+                        f = True
+                        break
+        except Exception as e:
+            print("Error: Password Failure", str(e))
+        finally:
+            if cursor is not None:
+                cursor.close()
+                return f
 
     def check_user_exist(self, user):
         cursor, f = None, False
@@ -126,6 +146,11 @@ class Model:
                 cursor.close()
                 return f
 
+    def search_medicine_name_from_alternatives(self, alternatives, name):
+        for a in alternatives:
+            if (a[0] == name):
+                return True
+
     def add_medicine(self, medicine, user):
         cursor, f = None, False
         try:
@@ -137,7 +162,8 @@ class Model:
                 userid = cursor.fetchone()
                 userid = userid[0]
                 query = "insert into medicine (admin_id, med_name, price, description, formula, quantity) values (%s,%s,%s,%s,%s,%s)"
-                arg = (userid, medicine.med_name, medicine.price, medicine.description, medicine.formula, medicine.quantity)
+                arg = (
+                userid, medicine.med_name, medicine.price, medicine.description, medicine.formula, medicine.quantity)
                 cursor.execute(query, arg)
                 self.connection.commit()
                 f = True
@@ -290,44 +316,69 @@ class Model:
                 cursor.close()
                 return True
 
-    def order(self, medicines):
+    def order_to(self, medicines):
+        ordering = []
+        flag = True
         try:
             if self.connection is not None:
                 for med in medicines:
                     m = self.search_medicine_name(med.med_name)
                     if m is None:
                         print("Medicine Not Found")
+                        return False
                     else:
                         if m[1] > med.quantity:
-                            print(m[0], " in Cart, Quantity: ", med.quantity, " , Price: ", m[2])
-
-                            self.payment = self.payment + (m[2] * med.quantity)
-                            self.quantity_update(m[0], (m[1] - med.quantity))
+                            ordr = Order(m[0], med.quantity, m[2])
+                            if ordering is not None:
+                                for o in ordering:
+                                    if o.med_name == m[0]:
+                                        o.quantity = o.quantity + med.quantity
+                                        self.payment = self.payment + (m[2] * med.quantity)
+                                        self.quantity_update(m[0], (m[1] - med.quantity))
+                                        flag = False
+                                        break
+                            if flag == True:
+                                ordering.append(ordr)
+                                self.payment = self.payment + (m[2] * med.quantity)
+                                self.quantity_update(m[0], (m[1] - med.quantity))
                         else:
+                            for_zero = m[1] - 1
                             print("Not enough Quantity of ", med.med_name, " in Inventory\nWe can provide ",
                                   m[1] - 1)
+                            if for_zero == 0:
+                                print("Oops! We can't provide you")
+                                ordering = None
+                                break
                             choice = input("\nWant to Take it(y/n): ")
                             if choice == "y" or choice == "Y":
                                 med.quantity = m[1] - 1
                                 print(m[0], " in Cart, Quantity: ", med.quantity, " , Price: ", m[2])
-                                self.payment = self.payment + (m[2] * med.quantity)
                                 self.quantity_update(m[0], (m[1] - med.quantity))
                             else:
                                 choice = input("Want an alternative(y/n): ")
                                 if choice == "y" or choice == "Y":
                                     alternatives = self.alternative(m[0], m[3])
-                                    for a in alternatives:
-                                        print("Name: ", a[0], ", Quantity: ", a[1], ", Price: ", a[2], ", Formula: ", a[3])
-                                    name = input("Which one you want?Enter Name: ")
-                                    while True:
-                                        try:
-                                            quantity = int(input("Quantity: "))
-                                            break
-                                        except ValueError:
-                                            print("Enter a Number!")
-                                    mm = self.search_medicine_name(name)
-                                    mmm = [Prescription(mm[0], quantity)]
-                                    self.payment = self.order(mmm)
-            return self.payment
+                                    if alternatives is not None:
+                                        print("Alternatives are:\n")
+                                        print("+---------------+----------+-----------+--------------+")
+                                        print("\t", end="")
+                                        print('{:<15}{:<10}{:<10}{:<15}'.format("Name", "Quantity", "Price", "Formula"))
+                                        print("+---------------+----------+----------+---------------+")
+                                        for a in alternatives:
+                                            print("\t", end="")
+                                            print('{:<15}{:<10}{:<10}{:<15}'.format(a[0], str(a[1]), str(a[2]), a[3]))
+                                            print("+---------------+----------+----------+---------------+")
+                                        name = input("Which one you want?Enter Name: ")
+                                        while True:
+                                            try:
+                                                quantity = int(input("Quantity: "))
+                                                break
+                                            except ValueError:
+                                                print("Enter a Number!")
+                                        for a in alternatives:
+                                            if a[0] == name:
+                                                mmm = [Prescription(name, quantity)]
+                                    ordering = self.order_to(mmm)
+            return ordering
         except Exception as error:
             print("X: Order Failed!", str(error))
